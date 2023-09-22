@@ -14,7 +14,7 @@ runs:
       with:
         ref: "${{ github.ref_name }}"
 
-    - name: Check whether elements exist for the current release-tag in changelog
+    - name: Check whether the release-tag is mentioned in changelog
       shell: bash
       run: |
         grep "${{ github.ref_name }}" ${{ inputs.changelog-file }}
