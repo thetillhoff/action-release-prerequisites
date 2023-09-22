@@ -1,13 +1,13 @@
 name: Release prerequisites
 
 inputs:
+  GITHUB_TOKEN:
+    description: "Token that is allowed to delete tags"
+    required: true
   CHANGELOG_FILE:
     description: "Location of the file that contains the changelog"
     required: false
     default: "CHANGELOG.md"
-  GITHUB_TOKEN:
-    description: "Token that is allowed to delete tags"
-    required: true
 
 permissions:
   contents: write
