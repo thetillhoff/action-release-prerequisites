@@ -40,6 +40,10 @@ runs:
           echo EOF
         } >> "$GITHUB_OUTPUT"
 
+    - shell: bash
+      run: |
+        echo ${{ steps.release-body.outputs.RELEASE_BODY }}
+
     - name: Delete version-tag when changelog doesn't contain information about it
       if: failure()
       shell: bash
