@@ -1,9 +1,6 @@
 name: Release prerequisites
 
 inputs:
-  GITHUB_TOKEN:
-    description: "Token that is allowed to delete tags"
-    required: false
   CHANGELOG_FILE:
     description: "Location of the file that contains the changelog"
     required: false
