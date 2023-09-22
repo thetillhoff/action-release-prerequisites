@@ -1,0 +1,28 @@
+name: Release prerequisites
+
+inputs:
+  changelog-file:
+    description: "Location of the file that contains the changelog"
+    required: false
+    default: "CHANGELOG.md"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: "${{ github.ref_name }}"
+
+    - name: Check whether elements exist for the current release-tag in changelog
+      shell: bash
+      run: |
+        grep "${{ github.ref_name }}" ${{ inputs.changelog-file }}
+
+    - name: Delete version-tag when changelog doesn't contain information about it
+      if: failure()
+      shell: bash
+      run: |
+        git config --global user.name 'GithubActions'
+        git config --global user.email 'githubactions@users.noreply.github.com'
+        git push --delete origin ${{ github.ref_name }}
