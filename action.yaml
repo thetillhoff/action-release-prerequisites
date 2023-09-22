@@ -1,10 +1,16 @@
 name: Release prerequisites
 
 inputs:
-  changelog-file:
+  CHANGELOG_FILE:
     description: "Location of the file that contains the changelog"
     required: false
     default: "CHANGELOG.md"
+  GITHUB_TOKEN:
+    description: "Token that is allowed to delete tags"
+    required: true
+
+permissions:
+  contents: write
 
 runs:
   using: "composite"
@@ -17,7 +23,7 @@ runs:
     - name: Check whether the release-tag is mentioned in changelog
       shell: bash
       run: |
-        grep "${{ github.ref_name }}" ${{ inputs.changelog-file }}
+        grep "${{ github.ref_name }}" ${{ inputs.CHANGELOG_FILE }}
 
     - name: Delete version-tag when changelog doesn't contain information about it
       if: failure()
