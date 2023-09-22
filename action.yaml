@@ -9,6 +9,11 @@ inputs:
     required: false
     default: "CHANGELOG.md"
 
+outputs:
+  RELEASE_BODY:
+    description: "Changelog section for this release"
+    value: ${{ steps.release-body.outputs.RELEASE_BODY }}
+
 permissions:
   contents: write
 
@@ -24,6 +29,16 @@ runs:
       shell: bash
       run: |
         grep "${{ github.ref_name }}" ${{ inputs.CHANGELOG_FILE }}
+
+    - name: Generate release body
+      id: release-body
+      shell: bash
+      run: |
+        {
+          echo 'RELEASE_BODY<<EOF'
+          sed -n '/^## ${{ github.ref_name }}/,/^## v.*/{//! s/^//p}' CHANGELOG.md | head -n -1
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
 
     - name: Delete version-tag when changelog doesn't contain information about it
       if: failure()
