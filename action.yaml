@@ -1,31 +1,32 @@
 name: Release prerequisites
+description: 'Checks whether the release-tag is mentioned in the changelog'
 
 inputs:
+  RELEASE_TAG:
+    description: 'The tag of the release'
+    required: true
   CHANGELOG_FILE:
-    description: "Location of the file that contains the changelog"
+    description: 'Location of the file that contains the changelog'
     required: false
-    default: "CHANGELOG.md"
+    default: 'CHANGELOG.md'
 
 outputs:
   RELEASE_BODY:
-    description: "Changelog section for this release"
+    description: 'Changelog section for this release'
     value: ${{ steps.release-body.outputs.RELEASE_BODY }}
 
-permissions:
-  contents: write
-
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Checkout
       uses: actions/checkout@v5
       with:
-        ref: "${{ github.ref_name }}"
+        ref: '${{ inputs.RELEASE_TAG }}'
 
     - name: Check whether the release-tag is mentioned in changelog
       shell: bash
       run: |
-        grep "${{ github.ref_name }}" ${{ inputs.CHANGELOG_FILE }}
+        grep "${{ inputs.RELEASE_TAG }}" ${{ inputs.CHANGELOG_FILE }}
 
     - name: Generate release body
       id: release-body
@@ -33,7 +34,7 @@ runs:
       run: |
         {
           echo 'RELEASE_BODY<<EOF'
-          sed -n '/^## ${{ github.ref_name }}/,/^## v.*/{//! s/^//p}' CHANGELOG.md | head -n -1
+          sed -n '/^## ${{ inputs.RELEASE_TAG }}/,/^## v.*/{//! s/^//p}' CHANGELOG.md | head -n -1
           echo EOF
         } >> "$GITHUB_OUTPUT"
 
@@ -41,11 +42,3 @@ runs:
       shell: bash
       run: |
         echo "${{ steps.release-body.outputs.RELEASE_BODY }}"
-
-    - name: Delete version-tag when changelog doesn't contain information about it
-      if: failure()
-      shell: bash
-      run: |
-        git config --global user.name 'GithubActions'
-        git config --global user.email 'githubactions@users.noreply.github.com'
-        git push --delete origin ${{ github.ref_name }}
