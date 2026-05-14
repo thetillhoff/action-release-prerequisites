@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.1
+
+- Bump `actions/checkout` to v6.0.2 (Node.js 24 compatible), pin to SHA
+
 ## v0.3.0
 
 - Add required input for the release tag
