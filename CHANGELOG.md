@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.2
+
+- Fix shell injection of backtick characters in release body display step; use env var instead of inline interpolation
+
 ## v0.3.1
 
 - Bump `actions/checkout` to v6.0.2 (Node.js 24 compatible), pin to SHA

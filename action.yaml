@@ -40,5 +40,7 @@ runs:
 
     - name: Display release body
       shell: bash
+      env:
+        RELEASE_BODY: ${{ steps.release-body.outputs.RELEASE_BODY }}
       run: |
-        echo "${{ steps.release-body.outputs.RELEASE_BODY }}"
+        printf '%s\n' "$RELEASE_BODY"
