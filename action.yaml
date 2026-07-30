@@ -23,19 +23,57 @@ runs:
       with:
         ref: '${{ inputs.RELEASE_TAG }}'
 
+    # Every step below passes values in through `env` and reads them as shell
+    # variables. A ${{ }} reference inside `run` is pasted into the script as
+    # literal text before bash parses it, so changelog content would be read as
+    # shell: a backtick or $( ) executes, and a double quote ends the string and
+    # lets whatever follows run as commands.
+
     - name: Check whether the release-tag is mentioned in changelog
       shell: bash
+      env:
+        RELEASE_TAG: ${{ inputs.RELEASE_TAG }}
+        CHANGELOG_FILE: ${{ inputs.CHANGELOG_FILE }}
       run: |
-        grep "${{ inputs.RELEASE_TAG }}" ${{ inputs.CHANGELOG_FILE }}
+        # -F matches the tag literally. Without it the dots in a version are
+        # regex wildcards, so v1.2.3 would also accept v1X2X3.
+        grep -F -- "$RELEASE_TAG" "$CHANGELOG_FILE"
 
     - name: Generate release body
       id: release-body
       shell: bash
+      env:
+        RELEASE_TAG: ${{ inputs.RELEASE_TAG }}
+        CHANGELOG_FILE: ${{ inputs.CHANGELOG_FILE }}
       run: |
+        # The heading is compared as a literal string, so the tag is never treated
+        # as a pattern. It is a prefix match rather than an equality one, because
+        # some changelogs date their headings - "## v0.1.0 on 2023-10-14" - and
+        # the release tag is only the first part. Trailing blank lines are dropped.
+        BODY="$(
+          awk -v heading="## $RELEASE_TAG" '
+            !inside && substr($0, 1, length(heading)) == heading { inside = 1; next }
+            inside && /^## / { exit }
+            inside { body[++n] = $0 }
+            END {
+              while (n > 0 && body[n] ~ /^[[:space:]]*$/) { n-- }
+              for (i = 1; i <= n; i++) { print body[i] }
+            }
+          ' "$CHANGELOG_FILE"
+        )"
+
+        if [ -z "$BODY" ]; then
+          echo "::error::No changelog section for $RELEASE_TAG in $CHANGELOG_FILE - expected a '## $RELEASE_TAG' heading followed by content"
+          exit 1
+        fi
+
+        # A random delimiter, so a changelog line that happens to read EOF cannot
+        # terminate the output block early.
+        DELIMITER="RELEASE_BODY_$(openssl rand -hex 16)"
         {
-          echo 'RELEASE_BODY<<EOF'
-          sed -n '/^## ${{ inputs.RELEASE_TAG }}/,/^## v.*/{//! s/^//p}' CHANGELOG.md | head -n -1
-          echo EOF
+          printf '%s<<%s\n' "RELEASE_BODY" "$DELIMITER"
+          printf '%s\n' "$BODY"
+          printf '%s\n' "$DELIMITER"
         } >> "$GITHUB_OUTPUT"
 
     - name: Display release body
