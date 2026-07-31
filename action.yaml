@@ -67,9 +67,15 @@ runs:
           exit 1
         fi
 
-        # A random delimiter, so a changelog line that happens to read EOF cannot
-        # terminate the output block early.
-        DELIMITER="RELEASE_BODY_$(openssl rand -hex 16)"
+        # A line in the body matching the delimiter would close the heredoc early,
+        # truncating the release notes and turning every following line into a
+        # step output of its own. Refuse rather than let that happen.
+        DELIMITER="RELEASE_BODY_EOF"
+        if printf '%s\n' "$BODY" | grep -qxF -- "$DELIMITER"; then
+          echo "::error::$CHANGELOG_FILE contains a line reading $DELIMITER, which would terminate the release body early - remove or reword it"
+          exit 1
+        fi
+
         {
           printf '%s<<%s\n' "RELEASE_BODY" "$DELIMITER"
           printf '%s\n' "$BODY"

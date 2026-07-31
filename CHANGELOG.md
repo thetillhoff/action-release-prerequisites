@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.4.1
+
+- Use a fixed `RELEASE_BODY_EOF` output delimiter again, dropping the `openssl` dependency v0.4.0 introduced. A body containing that line is now refused with an error naming it, instead of silently closing the output block early - which would truncate the release notes and turn every following line into a step output of its own
+
 ## v0.4.0
 
 - Pass values through `env` in the two remaining steps as well. v0.3.2 fixed the display step; the tag check and the body extraction still referenced `${{ }}` expressions inside `run`, which pastes a value into the script before bash parses it

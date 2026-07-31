@@ -21,7 +21,7 @@ jobs:
       RELEASE_BODY: ${{ steps.release-prerequisites.outputs.RELEASE_BODY }}
     steps:
       - id: release-prerequisites
-        uses: thetillhoff/action-release-prerequisites@v0.4.0
+        uses: thetillhoff/action-release-prerequisites@v0.4.1
         with:
           RELEASE_TAG: ${{ github.ref_name }}
       ## Optional: Delete version-tag on failure
